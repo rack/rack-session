@@ -11,6 +11,7 @@ require 'rack/utils'
 
 require_relative 'abstract/id'
 require_relative 'encryptor'
+require_relative 'constants'
 
 module Rack
 
