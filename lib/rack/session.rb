@@ -1,6 +1,7 @@
-
 module Rack
-  RACK_SESSION                        = 'rack.session'
-  RACK_SESSION_OPTIONS                = 'rack.session.options'
-  RACK_SESSION_UNPACKED_COOKIE_DATA   = 'rack.session.unpacked_cookie_data'
+  module Session
+    autoload :Cookie, "rack/session/cookie"
+    autoload :Pool, "rack/session/pool"
+    autoload :Memcache, "rack/session/memcache"
+  end
 end
