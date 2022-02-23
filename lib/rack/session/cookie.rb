@@ -152,7 +152,8 @@ module Rack
       attr_reader :coder, :encryptors
 
       def initialize(app, options = {})
-        secrets = [*options[:secrets]]
+        # support both :secrets and :secret for backwards compatibility
+        secrets = [*(options[:secrets] || options[:secret])]
 
         encryptor_opts = {
           purpose: options[:key], serialize_json: options[:serialize_json]
@@ -164,11 +165,12 @@ module Rack
           Rack::Session::Encryptor.new secret, encryptor_opts
         end
 
-        # If a legacy HMAC secret is present, initialize those features
-        if options.has_key?(:legacy_hmac_secret)
+        # If a legacy HMAC secret is present, initialize those features.
+        # Fallback to :secret for backwards compatibility.
+        if options.has_key?(:legacy_hmac_secret) || options.has_key?(:secret)
           @legacy_hmac = options.fetch(:legacy_hmac, 'SHA1')
 
-          @legacy_hmac_secret = options[:legacy_hmac_secret]
+          @legacy_hmac_secret = options[:legacy_hmac_secret] || options[:secret]
           @legacy_hmac_coder  = options.fetch(:legacy_hmac_coder, Base64::Marshal.new)
         else
           @legacy_hmac = false
