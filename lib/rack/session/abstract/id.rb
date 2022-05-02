@@ -11,6 +11,8 @@ require 'rack/constants'
 require 'rack/request'
 require 'rack/response'
 
+require_relative '../constants'
+
 module Rack
 
   module Session
