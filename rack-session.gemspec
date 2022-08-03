@@ -18,6 +18,8 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 2.4.0'
 
+  spec.add_dependency "rack", "~> 3.0"
+
   spec.add_development_dependency 'minitest', "~> 5.0"
   spec.add_development_dependency 'minitest-sprint'
   spec.add_development_dependency 'minitest-global_expectations'
