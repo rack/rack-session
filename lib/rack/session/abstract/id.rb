@@ -417,10 +417,9 @@ module Rack
         # Sets the cookie back to the client with session id. We skip the cookie
         # setting if the value didn't change (sid is the same) or expires was given.
 
-        def set_cookie(request, res, cookie)
+        def set_cookie(request, response, cookie)
           if request.cookies[@key] != cookie[:value] || cookie[:expires]
-            res.set_cookie_header =
-              Utils.add_cookie_to_header(res.set_cookie_header, @key, cookie)
+            response.set_cookie(@key, cookie)
           end
         end
 
