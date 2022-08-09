@@ -11,6 +11,7 @@ In your `config.ru`:
 ```ruby
 # config.ru
 
+require 'rack/session'
 use Rack::Session::Cookie,
   :domain => 'mywebsite.com',
   :path => '/',
