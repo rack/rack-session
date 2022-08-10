@@ -2,7 +2,7 @@
 
 Session management implementation for Rack.
 
-[![Development Status](https://github.com/rack/rack-session/workflows/Development/badge.svg)](https://github.com/rack/rack-session/actions?workflow=Development)
+[![Development Status](https://github.com/rack/rack-session/workflows/Test/badge.svg)](https://github.com/rack/rack-session/actions?workflow=Test)
 
 ## Usage
 
