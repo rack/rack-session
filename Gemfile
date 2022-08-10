@@ -4,8 +4,6 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem "rack", git: "https://github.com/rack/rack.git", branch: "main"
-
 group :maintenance, optional: true do
   gem "bake"
   gem "bake-gem"
