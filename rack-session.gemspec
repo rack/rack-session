@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.summary = "A session implementation for Rack."
   spec.license = "MIT"
 
-  spec.files = Dir.glob('lib/**/*.rb')
+  spec.files = Dir.glob('lib/**/*.rb') + ["LICENSE.md"]
 
   spec.require_path = 'lib'
 
