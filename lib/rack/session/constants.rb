@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   module Session
     RACK_SESSION                        = 'rack.session'

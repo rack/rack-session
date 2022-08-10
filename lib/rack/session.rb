@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   module Session
     autoload :Cookie, "rack/session/cookie"
