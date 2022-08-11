@@ -4,6 +4,7 @@ require_relative 'helper'
 require 'rack/response'
 require 'rack/lint'
 require 'rack/mock'
+require 'json'
 
 require_relative '../lib/rack/session/cookie'
 
@@ -198,14 +199,17 @@ describe Rack::Session::Cookie do
         @calls = []
       end
 
-      def encode(str); @calls << :encode; str; end
-      def decode(str); @calls << :decode; str; end
+      def encode(hash); @calls << :encode; hash.to_json; end
+      def decode(str); @calls << :decode; JSON.parse(str); end
     }.new
     response = response_for(app: [incrementor, { coder: identity }])
 
     response["Set-Cookie"].must_include "rack.session="
     response.body.must_equal '{"counter"=>1}'
-    identity.calls.must_equal [:decode, :encode]
+    identity.calls.must_equal [:encode]
+
+    response = response_for(app: [incrementor, { coder: identity }], :cookie=>response["Set-Cookie"].split(';', 2).first)
+    identity.calls.must_equal [:encode, :decode, :encode]
   end
 
   it "creates a new cookie" do
