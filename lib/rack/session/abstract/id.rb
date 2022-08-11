@@ -250,7 +250,7 @@ module Rack
           secure_random: ::SecureRandom
         }.freeze
 
-        attr_reader :key, :default_options, :sid_secure
+        attr_reader :key, :default_options, :sid_secure, :same_site
 
         def initialize(app, options = {})
           @app = app
