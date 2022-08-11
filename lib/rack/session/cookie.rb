@@ -202,39 +202,40 @@ module Rack
       end
 
       def extract_session_id(request)
-        unpacked_cookie_data(request)["session_id"]
+        unpacked_cookie_data(request)&.[]("session_id")
       end
 
       def unpacked_cookie_data(request)
         request.fetch_header(RACK_SESSION_UNPACKED_COOKIE_DATA) do |k|
-          cookie_data = request.cookies[@key]
-          session_data = nil
+          if cookie_data = request.cookies[@key]
+            session_data = nil
 
-          # Try to decrypt the session data with our encryptors
-          encryptors.each do |encryptor|
-            begin
-              session_data = encryptor.decrypt(cookie_data) if cookie_data
-              break
-            rescue Rack::Session::Encryptor::Error => error
-              request.env[Rack::RACK_ERRORS].puts "Session cookie encryptor error: #{error.message}"
+            # Try to decrypt the session data with our encryptors
+            encryptors.each do |encryptor|
+              begin
+                session_data = encryptor.decrypt(cookie_data)
+                break
+              rescue Rack::Session::Encryptor::Error => error
+                request.env[Rack::RACK_ERRORS].puts "Session cookie encryptor error: #{error.message}"
 
-              next
+                next
+              end
             end
-          end
 
-          # If session decryption fails but there is @legacy_hmac_secret
-          # defined, attempt legacy HMAC verification
-          if !session_data && @legacy_hmac_secret
-            # Parse and verify legacy HMAC session cookie
-            session_data, _, digest = cookie_data.rpartition('--')
-            session_data = nil unless legacy_digest_match?(session_data, digest)
+            # If session decryption fails but there is @legacy_hmac_secret
+            # defined, attempt legacy HMAC verification
+            if !session_data && @legacy_hmac_secret
+              # Parse and verify legacy HMAC session cookie
+              session_data, _, digest = cookie_data.rpartition('--')
+              session_data = nil unless legacy_digest_match?(session_data, digest)
 
-            # Decode using legacy HMAC decoder
-            session_data = @legacy_hmac_coder.decode(session_data)
+              # Decode using legacy HMAC decoder
+              session_data = @legacy_hmac_coder.decode(session_data)
 
-          elsif !session_data && coder
-            # Use the coder option, which has the potential to be very unsafe
-            session_data = coder.decode(cookie_data)
+            elsif !session_data && coder
+              # Use the coder option, which has the potential to be very unsafe
+              session_data = coder.decode(cookie_data)
+            end
           end
 
           request.set_header(k, session_data || {})
