@@ -203,6 +203,7 @@ describe Rack::Session::Pool do
 
   it "passes through same_site option to session pool" do
     pool = Rack::Session::Pool.new(incrementor, same_site: :none)
+    pool.same_site.must_equal :none
     req = Rack::MockRequest.new(pool)
     res = req.get("/")
     res["Set-Cookie"].must_include "SameSite=None"
