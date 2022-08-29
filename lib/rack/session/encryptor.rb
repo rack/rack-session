@@ -26,7 +26,7 @@ module Rack
       # Options may include:
       # * :serialize_json
       #     Use JSON for message serialization instead of Marshal. This can be
-      #     viewed as a security ehancement.
+      #     viewed as a security enhancement.
       # * :pad_size
       #     Pad encrypted message data, to a multiple of this many bytes
       #     (default: 32). This can be between 2-4096 bytes, or +nil+ to disable
