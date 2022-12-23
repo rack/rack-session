@@ -30,7 +30,7 @@ module Rack
     # These options include:
     # * :serialize_json
     #     Use JSON for message serialization instead of Marshal. This can be
-    #     viewed as a security ehancement.
+    #     viewed as a security enhancement.
     # * :gzip_over
     #     For message data over this many bytes, compress it with the deflate
     #     algorithm.
