@@ -32,6 +32,10 @@ class MyApp
 end
 ```
 
+### Compatibility
+
+`rack-session` code used to be part of Rack, but it was extracted in Rack v3 to this gem. The v1 release of this gem is compatible with Rack v2, and the v2 release of this gem is compatible with Rack v3+. That means you can add `gem "rack-session"` to your application and it will be compatible with all versions of Rack.
+
 ## Contributing
 
 We welcome contributions to this project.
