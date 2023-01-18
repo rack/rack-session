@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# Released under the MIT License.
+# Copyright, 2022-2023, by Samuel Williams.
+# Copyright, 2022, by Jeremy Evans.
+# Copyright, 2022, by Jon Dufresne.
+
 require 'openssl'
 require 'zlib'
 require 'json'

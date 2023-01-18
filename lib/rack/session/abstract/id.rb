@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-# AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
-# bugrep: Andreas Zehnder
+# Released under the MIT License.
+# Copyright, 2022-2023, by Samuel Williams.
+# Copyright, 2022, by Jeremy Evans.
 
 require 'time'
 require 'securerandom'

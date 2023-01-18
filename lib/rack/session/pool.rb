@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-# AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
-# THANKS:
-#   apeiros, for session id generation, expiry setup, and threadiness
-#   sergio, threadiness and bugreps
+# Released under the MIT License.
+# Copyright, 2022-2023, by Samuel Williams.
 
 require_relative 'abstract/id'
 

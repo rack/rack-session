@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Released under the MIT License.
+# Copyright, 2022-2023, by Samuel Williams.
+
 if ENV.delete('COVERAGE')
   require 'coverage'
   require 'simplecov'
