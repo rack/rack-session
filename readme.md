@@ -8,7 +8,7 @@ Session management implementation for Rack.
 
 In your `config.ru`:
 
-```ruby
+``` ruby
 # config.ru
 
 require 'rack/session'
@@ -21,7 +21,7 @@ use Rack::Session::Cookie,
 
 Usage follows the standard outlined by `rack.session`, i.e.:
 
-```ruby
+``` ruby
 class MyApp
   def call(env)
     session = env['rack.session']
@@ -53,7 +53,7 @@ Released under the MIT license.
 Copyright, 2007-2021, by [Leah Neukirchen](https://leahneukirchen.org).  
 Copyright, 2008, by Scytrin dai Kinthra.
 Copyright, 2020, by [Michael Coyne](https://michaeljcoyne.me).  
-Copyright, 2021, by [Samuel G. D. Williams](https://www.codeotaku.com).  
+Copyright, 2021, by [Samuel G. D. Williams](https://www.codeotaku.com).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
