@@ -257,7 +257,7 @@ module Rack
 
         def decrypt(base64_data)
           data = Base64.strict_decode64(base64_data)
-          if data.bytesize <= 61 # version + iv + auth_tag = 61 byte (and we also need some ciphertext :)
+          if data.bytesize <= 61 # version + salt + iv + auth_tag = 61 byte (and we also need some ciphertext :)
             raise InvalidMessage, 'message is invalid'
           end
 
