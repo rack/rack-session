@@ -376,6 +376,8 @@ module Rack
         raise InvalidMessage, 'invalid message' if base64_data.nil? || base64_data.bytesize < 4
 
         first_encoded_4_bytes = base64_data.slice(0, 4)
+        # Transform the 4 bytes into non-URL-safe base64-encoded data. Nothing
+        # happens if the data is already non-URL-safe base64.
         first_encoded_4_bytes.tr!('-_', '+/')
         first_decoded_3_bytes = Base64.strict_decode64(first_encoded_4_bytes)
 
