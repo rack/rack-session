@@ -7,11 +7,11 @@ if ENV.delete('COVERAGE')
   require 'coverage'
   require 'simplecov'
 
-  def SimpleCov.rack_coverage(**opts)
+  def SimpleCov.rack_coverage(**_opts)
     start do
-      add_filter "/test/"
-      add_group('Missing'){|src| src.covered_percent < 100}
-      add_group('Covered'){|src| src.covered_percent == 100}
+      add_filter '/test/'
+      add_group('Missing') { |src| src.covered_percent < 100 }
+      add_group('Covered') { |src| src.covered_percent == 100 }
     end
   end
   SimpleCov.rack_coverage
@@ -25,8 +25,8 @@ if ENV['SEPARATE']
 else
   require_relative '../lib/rack/session'
 
-  def self.separate_testing
-  end
+  def self.separate_testing; end
 end
 require 'minitest/global_expectations/autorun'
 require 'stringio'
+require 'debug'

@@ -8,12 +8,12 @@ source 'https://rubygems.org'
 gemspec
 
 group :maintenance, optional: true do
-  gem "bake"
-  gem "bake-gem"
-  gem "bake-modernize"
+  gem 'bake'
+  gem 'bake-gem'
+  gem 'bake-modernize'
 
-  gem "rubocop", require: false
-  gem "rubocop-packaging", require: false
+  gem 'rubocop', require: false
+  gem 'rubocop-packaging', require: false
 end
 
 group :doc do
@@ -21,6 +21,11 @@ group :doc do
 end
 
 group :test do
-  gem "bake-test"
-  gem "bake-test-external"
+  gem 'bake-test'
+  gem 'bake-test-external'
+end
+
+group :development do
+  gem 'benchmark-ips'
+  gem 'debug'
 end

@@ -258,11 +258,11 @@ module Rack
         def decrypt(base64_data)
           data = Base64.strict_decode64(base64_data)
           if data.bytesize <= 61 # version + salt + iv + auth_tag = 61 byte (and we also need some ciphertext :)
-            raise InvalidMessage, 'message is invalid'
+            raise InvalidMessage, 'invalid message'
           end
 
           version = data[0]
-          raise InvalidMessage, 'wrong version' unless version == "\2"
+          raise InvalidMessage, 'invalid message' unless version == "\2"
 
           ciphertext = data.slice!(61..-1)
           auth_tag = data.slice!(45, 16)
@@ -280,7 +280,7 @@ module Rack
 
           deserialized_message plaintext
         rescue ArgumentError, OpenSSL::Cipher::CipherError
-          raise InvalidSignature, 'Message invalid'
+          raise InvalidSignature, 'invalid message'
         end
 
         def encrypt(message)
@@ -331,8 +331,9 @@ module Rack
       end
 
       def initialize(secret, opts = {})
-        @mode = opts[:mode]&.to_sym || :guess_version
+        opts = opts.dup
 
+        @mode = opts.delete(:mode)&.to_sym || :guess_version
         case @mode
         when :v1
           @v1 = V1.new(secret, opts)
@@ -348,9 +349,9 @@ module Rack
         decryptor =
           case @mode
           when :v2
-            @v2
+            v2
           when :v1
-            @v1
+            v1
           else
             guess_decryptor(base64_data)
           end
@@ -362,15 +363,17 @@ module Rack
         encryptor =
           case @mode
           when :v1
-            @v1
+            v1
           else
-            @v2
+            v2
           end
 
         encryptor.encrypt(message)
       end
 
       private
+
+      attr_reader :v1, :v2
 
       def guess_decryptor(base64_data)
         raise InvalidMessage, 'invalid message' if base64_data.nil? || base64_data.bytesize < 4
@@ -384,9 +387,9 @@ module Rack
         version = first_decoded_3_bytes[0]
         case version
         when "\2"
-          @v2
+          v2
         when "\1"
-          @v1
+          v1
         else
           raise InvalidMessage, 'invalid message'
         end
