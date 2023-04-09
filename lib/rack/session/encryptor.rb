@@ -233,8 +233,7 @@ module Rack
           raise ArgumentError, 'secret must be a String' unless secret.is_a?(String)
 
           unless secret.bytesize >= 32
-            raise ArgumentError,
-                  "invalid secret: it's #{secret.bytesize}-byte long, must be >=32"
+            raise ArgumentError, "invalid secret: it's #{secret.bytesize}-byte long, must be >=32"
           end
 
           case opts[:pad_size]

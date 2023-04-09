@@ -268,6 +268,15 @@ describe Rack::Session::Encryptor do
         encryptor.decrypt message
       end
     end
+
+    it 'ignores serialize_json' do
+      encryptor_no_json = encryptor_class.new(@secret, purpose: 'testing', serialize_json: false)
+      encryptor = encryptor_class.new(@secret, purpose: 'testing', serialize_json: true)
+
+      message = encryptor_no_json.encrypt({ 'foo' => 'bar' })
+
+      encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
+    end
   end
 
   describe '#encrypt' do
