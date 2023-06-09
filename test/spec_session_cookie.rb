@@ -355,9 +355,9 @@ describe Rack::Session::Cookie do
     response.body.must_equal ({"counter"=>2}.to_s)
 
     encoded_cookie = response["Set-Cookie"].split('=', 2).last.split(';').first
-    decoded_cookie = Base64.urlsafe_decode64(Rack::Utils.unescape(encoded_cookie))
+    decoded_cookie = Base64.strict_decode64(Rack::Utils.unescape(encoded_cookie))
 
-    tampered_cookie = "rack.session=#{Base64.urlsafe_encode64(decoded_cookie.tap { |m|
+    tampered_cookie = "rack.session=#{Base64.strict_encode64(decoded_cookie.tap { |m|
       m[m.size - 1] = (m[m.size - 1].unpack('C')[0] ^ 1).chr
     })}"
 
@@ -400,7 +400,7 @@ describe Rack::Session::Cookie do
     })}"
 
     response = response_for(app: err_app, cookie: tampered_cookie)
-    response.body.must_equal "Session cookie encryptor error: HMAC is invalid\n"
+    response.body.must_equal "Session cookie encryptor error: invalid message\n"
   end
 
   it 'ignores tampered with legacy hmac cookie' do
