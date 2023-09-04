@@ -342,20 +342,23 @@ module Rack
           value && !value.empty?
         end
 
-        # Session should be committed if it was loaded, any of specific options like :renew, :drop
+        # Session should be committed if it was changed, any of specific options like :renew, :drop
         # or :expire_after was given and the security permissions match. Skips if skip is given.
 
         def commit_session?(req, session, options)
-          if options[:skip]
-            false
-          else
-            has_session = loaded_session?(session) || forced_session_update?(session, options)
-            has_session && security_matches?(req, options)
-          end
+          return false if options[:skip]
+          return false unless security_matches?(req, options)
+          return true if forced_session_update?(session, options)
+
+          changed_session?(session)
         end
 
         def loaded_session?(session)
           !session.is_a?(session_class) || session.loaded?
+        end
+
+        def changed_session?(session)
+          !session.is_a?(session_class) || session.changed?
         end
 
         def forced_session_update?(session, options)
