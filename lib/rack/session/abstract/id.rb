@@ -354,13 +354,13 @@ module Rack
         end
 
         def loaded_session?(session)
-          return true if !session.is_a?(session_class)
+          return true if session.is_a?(session_class)
 
           session.loaded?
         end
 
         def changed_session?(session)
-          return true if !session.is_a?(session_class)
+          return true if session.is_a?(session_class)
 
           if session.respond_to?(:changed?)
             session.changed?
