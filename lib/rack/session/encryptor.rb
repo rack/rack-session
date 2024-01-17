@@ -328,15 +328,17 @@ module Rack
           cipher.key = key
         end
 
-        def auth_tag_from(cipher)
-          if RUBY_ENGINE == 'jruby'
-            # JRuby's OpenSSL implementation doesn't currently support passing
-            # an argument to #auth_tag. Here we work around that.
+        if RUBY_ENGINE == 'jruby'
+          # JRuby's OpenSSL implementation doesn't currently support passing
+          # an argument to #auth_tag. Here we work around that.
+          def auth_tag_from(cipher)
             tag = cipher.auth_tag
             raise Error, 'the auth tag must be 16 bytes long' if tag.bytesize != 16
 
             tag
-          else
+          end
+        else
+          def auth_tag_from(cipher)
             cipher.auth_tag(16)
           end
         end
