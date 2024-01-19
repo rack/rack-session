@@ -21,6 +21,7 @@ jobs:
           - macos
         
         ruby:
+          - "jruby"
           - "2.7"
           - "3.0"
           - "3.1"
@@ -34,7 +35,7 @@ jobs:
             ruby: truffleruby
             experimental: true
           - os: ubuntu
-            ruby: jruby
+            ruby: jruby-head
             experimental: true
           - os: ubuntu
             ruby: head
