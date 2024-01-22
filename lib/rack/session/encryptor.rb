@@ -302,7 +302,7 @@ module Rack
           encrypted_data = cipher.update(serialized_payload) << cipher.final
 
           data << cipher_iv
-          data << cipher.auth_tag(16)
+          data << auth_tag_from(cipher)
           data << encrypted_data
 
           Base64.strict_encode64(data)
@@ -326,6 +326,21 @@ module Rack
 
         def set_cipher_key(cipher, key)
           cipher.key = key
+        end
+
+        if RUBY_ENGINE == 'jruby'
+          # JRuby's OpenSSL implementation doesn't currently support passing
+          # an argument to #auth_tag. Here we work around that.
+          def auth_tag_from(cipher)
+            tag = cipher.auth_tag
+            raise Error, 'the auth tag must be 16 bytes long' if tag.bytesize != 16
+
+            tag
+          end
+        else
+          def auth_tag_from(cipher)
+            cipher.auth_tag(16)
+          end
         end
       end
 
