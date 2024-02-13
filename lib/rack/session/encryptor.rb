@@ -32,12 +32,12 @@ module Rack
         def serialize_payload(message)
           serialized_data = serializer.dump(message)
 
-          return "#{[0].pack('v')}#{serialized_data}" if @options[:pad_size].nil?
+          return "#{[0].pack('v')}#{serialized_data.force_encoding(Encoding::BINARY)}" if @options[:pad_size].nil?
 
           padding_bytes = @options[:pad_size] - (2 + serialized_data.size) % @options[:pad_size]
           padding_data = SecureRandom.random_bytes(padding_bytes)
 
-          "#{[padding_bytes].pack('v')}#{padding_data}#{serialized_data}"
+          "#{[padding_bytes].pack('v')}#{padding_data}#{serialized_data.force_encoding(Encoding::BINARY)}"
         end
 
         # Return the deserialized message. The first 2 bytes will be read as the
