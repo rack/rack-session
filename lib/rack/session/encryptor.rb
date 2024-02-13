@@ -103,7 +103,7 @@ module Rack
             serialize_json: false, pad_size: 32, purpose: nil
           }.update(opts)
 
-          @hmac_secret = secret.dup.force_encoding('BINARY')
+          @hmac_secret = secret.dup.force_encoding(Encoding::BINARY)
           @cipher_secret = @hmac_secret.slice!(0, 32)
 
           @hmac_secret.freeze
@@ -250,7 +250,7 @@ module Rack
           }.update(opts)
           @options[:serialize_json] = true # Enforce JSON serialization
 
-          @cipher_secret = secret.dup.force_encoding('BINARY').slice!(0, 32)
+          @cipher_secret = secret.dup.force_encoding(Encoding::BINARY).slice!(0, 32)
           @cipher_secret.freeze
         end
 
