@@ -368,7 +368,9 @@ module Rack
 
         def security_matches?(request, options)
           return true unless options[:secure]
-          request.ssl?
+          # OK to send a secure token over ssl, or to local host
+          # or if the instance is running behind a proxy that handles ssl
+          request.ssl? || request.host == 'localhost' || options[:trust_proxy]
         end
 
         # Acquires the session from the environment and the session id from
