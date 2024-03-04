@@ -371,7 +371,7 @@ module Rack
           return true unless options[:secure]
           # OK to send a secure token over ssl, or to local host
           # or if the instance is running behind a proxy that handles ssl
-          request.ssl? || request.host == 'localhost' || @trust_proxy
+          request.ssl? || request.host == 'localhost' || @trust_proxy == true
         end
 
         # Acquires the session from the environment and the session id from
