@@ -257,7 +257,7 @@ module Rack
           @app = app
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
           @key = @default_options.delete(:key)
-          @trust_proxy = @default_options.delete(:trust_proxy)
+          @assume_ssl = @default_options.delete(:assume_ssl)
           @cookie_only = @default_options.delete(:cookie_only)
           @same_site = @default_options.delete(:same_site)
           initialize_sid
@@ -369,9 +369,7 @@ module Rack
 
         def security_matches?(request, options)
           return true unless options[:secure]
-          # OK to send a secure token over ssl, or to local host
-          # or if the instance is running behind a proxy that handles ssl
-          request.ssl? || request.host == 'localhost' || @trust_proxy == true
+          request.ssl? || @assume_ssl == true
         end
 
         # Acquires the session from the environment and the session id from

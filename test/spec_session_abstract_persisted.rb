@@ -81,19 +81,13 @@ describe Rack::Session::Abstract::Persisted do
       @pers.send(:security_matches?, req, { secure: true }).must_equal true
     end
 
-    it '#security_matches? returns true if trusted_host option is set' do
+    it '#security_matches? returns true if assume_ssl option is set' do
       req = Rack::Request.new({})
-      pers_with_persist = @class.new(nil, { trust_proxy: true })
+      pers_with_persist = @class.new(nil, { assume_ssl: true })
       pers_with_persist.send(:security_matches?, req, { secure: true }).must_equal true
     end
 
-    it "#security_matches? returns true if host = 'localhost'" do
-      req = Rack::Request.new({})
-      req.set_header('HTTP_HOST', 'localhost')
-      @pers.send(:security_matches?, req, { secure: true }).must_equal true
-    end
-
-    it '#security_matches? returns true if secure cookie is off' do
+    it '#security_matches? returns false if secure cookie is on, but not ssl or assume_ssl' do
       @pers.send(:security_matches?, Rack::Request.new({}), { secure: true }).must_equal false
     end
 
