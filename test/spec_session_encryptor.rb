@@ -58,6 +58,18 @@ module EncryptorTests
         encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
       end
 
+      # The V1 encryptor defaults to the Marshal serializer, while the V2
+      # encryptor always uses the JSON serializer. This means that we are
+      # indirectly covering both serializers.
+      it 'decrypts an encrypted message with UTF-8 data' do
+        encryptor = encryptor_class.new(@secret)
+
+        encrypted_message = encryptor.encrypt({ 'foo' => 'bar 😀' })
+        decrypted_message = encryptor.decrypt(encrypted_message)
+
+        decrypted_message.must_equal({ 'foo' => 'bar 😀' })
+      end
+
       it 'decrypts raises InvalidSignature without purpose' do
         encryptor = encryptor_class.new(@secret, purpose: 'testing')
         other_encryptor = encryptor_class.new(@secret)
