@@ -215,7 +215,7 @@ module Rack
       # All parameters are optional.
       # * :key determines the name of the cookie, by default it is
       #   'rack.session'
-      # * :path, :domain, :expire_after, :secure, :httponly, and :same_site set
+      # * :path, :domain, :expire_after, :secure, :httponly, :partitioned and :same_site set
       #   the related cookie options as by Rack::Response#set_cookie
       # * :skip will not a set a cookie in the response nor update the session state
       # * :defer will not set a cookie in the response but still update the session
@@ -244,6 +244,7 @@ module Rack
           expire_after: nil,
           secure: false,
           httponly: true,
+          partitioned: false,
           defer: false,
           renew: false,
           sidbits: 128,
