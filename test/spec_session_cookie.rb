@@ -212,7 +212,7 @@ describe Rack::Session::Cookie do
     response.body.must_equal '{"counter"=>1}'
     identity.calls.must_equal [:encode]
 
-    response = response_for(app: [incrementor, { coder: identity }], :cookie=>response["Set-Cookie"].split(';', 2).first)
+    response_for(app: [incrementor, { coder: identity }], cookie: response["Set-Cookie"].split(';', 2).first)
     identity.calls.must_equal [:encode, :decode, :encode]
   end
 
@@ -223,8 +223,8 @@ describe Rack::Session::Cookie do
   end
 
   it "passes through same_site option to session cookie" do
-    response = response_for(app: [incrementor, same_site: :none])
-    response["Set-Cookie"].must_include "SameSite=None"
+    response = response_for(app: [incrementor, { same_site: :none }])
+    assert(response["Set-Cookie"].include?("SameSite=None") || response["Set-Cookie"].include?("samesite=none"))
   end
 
   it "allows using a lambda to specify same_site option, because some browsers require different settings" do
@@ -232,11 +232,11 @@ describe Rack::Session::Cookie do
     # https://www.chromium.org/updates/same-site/incompatible-clients
     # https://gist.github.com/bnorton/7dee72023787f367c48b3f5c2d71540f
 
-    response = response_for(app: [incrementor, same_site: lambda { |req, res| :none }])
-    response["Set-Cookie"].must_include "SameSite=None"
+    response = response_for(app: [incrementor, { same_site: lambda { |req, res| :none } }])
+    assert(response["Set-Cookie"].include?("SameSite=None") || response["Set-Cookie"].include?("samesite=none"))
 
-    response = response_for(app: [incrementor, same_site: lambda { |req, res| :lax }])
-    response["Set-Cookie"].must_include "SameSite=Lax"
+    response = response_for(app: [incrementor, { same_site: lambda { |req, res| :lax } }])
+    assert(response["Set-Cookie"].include?("SameSite=Lax") || response["Set-Cookie"].include?("samesite=lax"))
   end
 
   it "loads from a cookie" do
