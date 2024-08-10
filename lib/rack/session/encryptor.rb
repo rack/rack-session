@@ -32,12 +32,12 @@ module Rack
         def serialize_payload(message)
           serialized_data = serializer.dump(message)
 
-          return "#{[0].pack('v')}#{serialized_data}" if @options[:pad_size].nil?
+          return "#{[0].pack('v')}#{serialized_data.force_encoding(Encoding::BINARY)}" if @options[:pad_size].nil?
 
           padding_bytes = @options[:pad_size] - (2 + serialized_data.size) % @options[:pad_size]
           padding_data = SecureRandom.random_bytes(padding_bytes)
 
-          "#{[padding_bytes].pack('v')}#{padding_data}#{serialized_data}"
+          "#{[padding_bytes].pack('v')}#{padding_data}#{serialized_data.force_encoding(Encoding::BINARY)}"
         end
 
         # Return the deserialized message. The first 2 bytes will be read as the
@@ -103,7 +103,7 @@ module Rack
             serialize_json: false, pad_size: 32, purpose: nil
           }.update(opts)
 
-          @hmac_secret = secret.dup.force_encoding('BINARY')
+          @hmac_secret = secret.dup.force_encoding(Encoding::BINARY)
           @cipher_secret = @hmac_secret.slice!(0, 32)
 
           @hmac_secret.freeze
@@ -223,12 +223,13 @@ module Rack
         #
         # Considerations about V2:
         #
-        # 1) It serializes messages in JSON, period.
-        #
-        # 2) It uses non URL-safe Base64 encoding as it's faster than its
+        # 1) It uses non URL-safe Base64 encoding as it's faster than its
         #    URL-safe counterpart - as of Ruby 3.2, Base64.urlsafe_encode64 is
-        #    roughly equivalent to do Base64.strict_encode64(data).tr("-_",
-        #    "+/") - and cookie values don't need to be URL-safe.
+        #    roughly equivalent to
+        #
+        #    Base64.strict_encode64(data).tr("-_", "+/")
+        #
+        #    - and cookie values don't need to be URL-safe.
         def initialize(secret, opts = {})
           raise ArgumentError, 'secret must be a String' unless secret.is_a?(String)
 
@@ -246,11 +247,10 @@ module Rack
           end
 
           @options = {
-            pad_size: 32, purpose: nil
+            serialize_json: false, pad_size: 32, purpose: nil
           }.update(opts)
-          @options[:serialize_json] = true # Enforce JSON serialization
 
-          @cipher_secret = secret.dup.force_encoding('BINARY').slice!(0, 32)
+          @cipher_secret = secret.dup.force_encoding(Encoding::BINARY).slice!(0, 32)
           @cipher_secret.freeze
         end
 
