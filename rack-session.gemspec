@@ -14,7 +14,11 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir['{lib}/**/*', '*.md']
 
-  spec.required_ruby_version = ">= 2.4.0"
+  spec.required_ruby_version = ">= 2.5"
+
+  spec.metadata = {
+    "rubygems_mfa_required" => "true"
+  }
 
   spec.add_dependency "base64", ">= 0.1.0"
   spec.add_dependency "rack", ">= 3.0.0"
