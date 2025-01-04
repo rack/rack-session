@@ -209,19 +209,19 @@ describe Rack::Session::Pool do
     pool.same_site.must_equal :none
     req = Rack::MockRequest.new(pool)
     res = req.get("/")
-    res["Set-Cookie"].must_include "SameSite=None"
+    res["Set-Cookie"].must_match /SameSite=None/i
   end
 
   it "allows using a lambda to specify same_site option, because some browsers require different settings" do
     pool = Rack::Session::Pool.new(incrementor, same_site: lambda { |req, res| :none })
     req = Rack::MockRequest.new(pool)
     res = req.get("/")
-    res["Set-Cookie"].must_include "SameSite=None"
+    res["Set-Cookie"].must_match /SameSite=None/i
 
     pool = Rack::Session::Pool.new(incrementor, same_site: lambda { |req, res| :lax })
     req = Rack::MockRequest.new(pool)
     res = req.get("/")
-    res["Set-Cookie"].must_include "SameSite=Lax"
+    res["Set-Cookie"].must_match /SameSite=Lax/i
   end
 
   # anyone know how to do this better?

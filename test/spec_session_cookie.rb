@@ -224,7 +224,7 @@ describe Rack::Session::Cookie do
 
   it "passes through same_site option to session cookie" do
     response = response_for(app: [incrementor, same_site: :none])
-    response["Set-Cookie"].must_include "SameSite=None"
+    response["Set-Cookie"].must_match /SameSite=None/i
   end
 
   it "allows using a lambda to specify same_site option, because some browsers require different settings" do
@@ -233,10 +233,10 @@ describe Rack::Session::Cookie do
     # https://gist.github.com/bnorton/7dee72023787f367c48b3f5c2d71540f
 
     response = response_for(app: [incrementor, same_site: lambda { |req, res| :none }])
-    response["Set-Cookie"].must_include "SameSite=None"
+    response["Set-Cookie"].must_match /SameSite=None/i
 
     response = response_for(app: [incrementor, same_site: lambda { |req, res| :lax }])
-    response["Set-Cookie"].must_include "SameSite=Lax"
+    response["Set-Cookie"].must_match /SameSite=Lax/i
   end
 
   it "loads from a cookie" do
