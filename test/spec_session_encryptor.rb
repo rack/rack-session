@@ -10,102 +10,118 @@ require 'base64'
 require 'json'
 require 'securerandom'
 
-module EncryptorTests
-  def self.included(_base)
-    describe 'encryptor' do
-      it 'initialize does not destroy key string' do
-        encryptor_class.new(@secret)
+def all_versions_tests(opts = {})
+  Module.new do
+    define_method(:default_opts) do
+      opts
+    end
 
-        @secret.size.must_equal 64
-      end
+    def self.included(_base)
+      describe 'encryptor' do
+        it 'initialize does not destroy key string' do
+          new_encryptor(@secret)
 
-      it 'initialize raises ArgumentError on invalid key' do
-        -> { encryptor_class.new ['foo'] }.must_raise ArgumentError
-      end
+          @secret.size.must_equal 64
+        end
 
-      it 'initialize raises ArgumentError on short key' do
-        -> { encryptor_class.new 'key' }.must_raise ArgumentError
-      end
+        it 'initialize raises ArgumentError on invalid key' do
+          -> { new_encryptor ['foo'] }.must_raise ArgumentError
+        end
 
-      it 'decrypts an encrypted message' do
-        encryptor = encryptor_class.new(@secret)
+        it 'initialize raises ArgumentError on short key' do
+          -> { new_encryptor 'key' }.must_raise ArgumentError
+        end
 
-        message = encryptor.encrypt({ 'foo' => 'bar' })
+        it 'decrypts an encrypted message' do
+          encryptor = new_encryptor(@secret)
 
-        encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
-      end
+          message = encryptor.encrypt({ 'foo' => 'bar' })
 
-      it 'decrypt raises InvalidSignature for tampered messages' do
-        encryptor = encryptor_class.new(@secret)
+          encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
+        end
 
-        message = encryptor.encrypt({ 'foo' => 'bar' })
+        it 'decrypt raises InvalidSignature for tampered messages' do
+          encryptor = new_encryptor(@secret)
 
-        decoded_message = Base64.urlsafe_decode64(message)
-        tampered_message = Base64.urlsafe_encode64(decoded_message.tap do |m|
-          m[m.size - 1] = (m[m.size - 1].unpack1('C') ^ 1).chr
-        end)
+          message = encryptor.encrypt({ 'foo' => 'bar' })
 
-        lambda {
-          encryptor.decrypt(tampered_message)
-        }.must_raise Rack::Session::Encryptor::InvalidSignature
-      end
+          decoded_message = Base64.urlsafe_decode64(message)
+          tampered_message = Base64.urlsafe_encode64(decoded_message.tap do |m|
+            m[m.size - 1] = (m[m.size - 1].unpack1('C') ^ 1).chr
+          end)
 
-      it 'decrypts an encrypted message with purpose' do
-        encryptor = encryptor_class.new(@secret, purpose: 'testing')
+          lambda {
+            encryptor.decrypt(tampered_message)
+          }.must_raise Rack::Session::Encryptor::InvalidSignature
+        end
 
-        message = encryptor.encrypt({ 'foo' => 'bar' })
+        it 'decrypts an encrypted message with purpose' do
+          encryptor = new_encryptor(@secret, purpose: 'testing')
 
-        encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
-      end
+          message = encryptor.encrypt({ 'foo' => 'bar' })
 
-      # The V1 encryptor defaults to the Marshal serializer, while the V2
-      # encryptor always uses the JSON serializer. This means that we are
-      # indirectly covering both serializers.
-      it 'decrypts an encrypted message with UTF-8 data' do
-        encryptor = encryptor_class.new(@secret)
+          encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
+        end
 
-        encrypted_message = encryptor.encrypt({ 'foo' => 'bar 😀' })
-        decrypted_message = encryptor.decrypt(encrypted_message)
+        it 'decrypts an encrypted message with UTF-8 data' do
+          encryptor = new_encryptor(@secret)
 
-        decrypted_message.must_equal({ 'foo' => 'bar 😀' })
-      end
+          encrypted_message = encryptor.encrypt({ 'foo' => 'bar 😀' })
+          decrypted_message = encryptor.decrypt(encrypted_message)
 
-      it 'decrypts raises InvalidSignature without purpose' do
-        encryptor = encryptor_class.new(@secret, purpose: 'testing')
-        other_encryptor = encryptor_class.new(@secret)
+          decrypted_message.must_equal({ 'foo' => 'bar 😀' })
+        end
 
-        message = other_encryptor.encrypt({ 'foo' => 'bar' })
+        it 'decrypts raises InvalidSignature without purpose' do
+          encryptor = new_encryptor(@secret, purpose: 'testing')
+          other_encryptor = new_encryptor(@secret)
 
-        -> { encryptor.decrypt(message) }.must_raise Rack::Session::Encryptor::InvalidSignature
-      end
+          message = other_encryptor.encrypt({ 'foo' => 'bar' })
 
-      it 'decrypts raises InvalidSignature with different purpose' do
-        encryptor = encryptor_class.new(@secret, purpose: 'testing')
-        other_encryptor = encryptor_class.new(@secret, purpose: 'other')
+          -> { encryptor.decrypt(message) }.must_raise Rack::Session::Encryptor::InvalidSignature
+        end
 
-        message = other_encryptor.encrypt({ 'foo' => 'bar' })
+        it 'decrypts raises InvalidSignature with different purpose' do
+          encryptor = new_encryptor(@secret, purpose: 'testing')
+          other_encryptor = new_encryptor(@secret, purpose: 'other')
 
-        -> { encryptor.decrypt(message) }.must_raise Rack::Session::Encryptor::InvalidSignature
-      end
+          message = other_encryptor.encrypt({ 'foo' => 'bar' })
 
-      it 'initialize raises ArgumentError on invalid pad_size' do
-        -> { encryptor_class.new @secret, pad_size: :bar }.must_raise ArgumentError
-      end
+          -> { encryptor.decrypt(message) }.must_raise Rack::Session::Encryptor::InvalidSignature
+        end
 
-      it 'initialize raises ArgumentError on to short pad_size' do
-        -> { encryptor_class.new @secret, pad_size: 1 }.must_raise ArgumentError
-      end
+        it 'initialize raises ArgumentError on invalid pad_size' do
+          -> { new_encryptor @secret, pad_size: :bar }.must_raise ArgumentError
+        end
 
-      it 'initialize raises ArgumentError on to long pad_size' do
-        -> { encryptor_class.new @secret, pad_size: 8023 }.must_raise ArgumentError
-      end
+        it 'initialize raises ArgumentError on to short pad_size' do
+          -> { new_encryptor @secret, pad_size: 1 }.must_raise ArgumentError
+        end
 
-      it 'decrypts an encrypted message without pad_size' do
-        encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: nil)
+        it 'initialize raises ArgumentError on to long pad_size' do
+          -> { new_encryptor @secret, pad_size: 8023 }.must_raise ArgumentError
+        end
 
-        message = encryptor.encrypt({ 'foo' => 'bar' })
+        it 'decrypts an encrypted message without pad_size' do
+          encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: nil)
 
-        encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
+          message = encryptor.encrypt({ 'foo' => 'bar' })
+
+          encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
+        end
+
+        it 'encryptor with pad_size increases message size' do
+          no_pad_encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: nil)
+          pad_encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: 64)
+
+          message_without = Base64.urlsafe_decode64(no_pad_encryptor.encrypt(''))
+          message_with = Base64.urlsafe_decode64(pad_encryptor.encrypt(''))
+          message_size_diff = message_with.bytesize - message_without.bytesize
+
+          message_with.bytesize.must_be :>, message_without.bytesize
+          serializer = default_opts[:serialize_json] ? JSON : Marshal
+          message_size_diff.must_equal 64 - serializer.dump('').bytesize - 2
+        end
       end
     end
   end
@@ -116,15 +132,24 @@ describe Rack::Session::Encryptor do
     @secret = SecureRandom.random_bytes(64)
   end
 
+  def new_encryptor(secret, opts = {})
+    if respond_to?(:default_opts)
+      encryptor_class.new(secret, default_opts.merge(opts))
+    else
+      encryptor_class.new(secret, opts)
+    end
+  end
+
   describe 'V1' do
     def encryptor_class
       Rack::Session::Encryptor::V1
     end
 
-    include EncryptorTests
+    include all_versions_tests(serialize_json: false)
+    include all_versions_tests(serialize_json: true)
 
     it 'encryptor with pad_size has message payload size to multiple of pad_size' do
-      encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: 24)
+      encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: 24)
       message = encryptor.encrypt({ 'foo' => 'bar' * 4 })
 
       decoded_message = Base64.urlsafe_decode64(message)
@@ -136,24 +161,12 @@ describe Rack::Session::Encryptor do
       (encrypted_payload.bytesize % 24).must_equal 0
     end
 
-    it 'encryptor with pad_size increases message size' do
-      no_pad_encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: nil)
-      pad_encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: 64)
-
-      message_without = Base64.urlsafe_decode64(no_pad_encryptor.encrypt(''))
-      message_with = Base64.urlsafe_decode64(pad_encryptor.encrypt(''))
-      message_size_diff = message_with.bytesize - message_without.bytesize
-
-      message_with.bytesize.must_be :>, message_without.bytesize
-      message_size_diff.must_equal 64 - Marshal.dump('').bytesize - 2
-    end
-
     # This test checks the one-time message key IS NOT used as the cipher key.
     # Doing so would remove the confidentiality assurances as the key is
     # essentially included in plaintext then.
     it 'uses a secret cipher key for encryption and decryption' do
       cipher = OpenSSL::Cipher.new('aes-256-ctr')
-      encryptor = encryptor_class.new(@secret)
+      encryptor = new_encryptor(@secret)
 
       message = encryptor.encrypt({ 'foo' => 'bar' })
       raw_message = Base64.urlsafe_decode64(message)
@@ -178,7 +191,7 @@ describe Rack::Session::Encryptor do
     end
 
     it 'it calls set_cipher_key with the correct key' do
-      encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: 24)
+      encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: 24)
       message = encryptor.encrypt({ 'foo' => 'bar' })
 
       message_key = Base64.urlsafe_decode64(message).slice(1, 32)
@@ -194,6 +207,24 @@ describe Rack::Session::Encryptor do
         encryptor.decrypt message
       end
     end
+
+    it 'preserves symbols when payloads are not encoded into JSON' do
+      encryptor = new_encryptor(@secret, purpose: 'testing', serialize_json: false)
+
+      encrypted_message = encryptor.encrypt({ foo: 'bar' })
+      decrypted_message = encryptor.decrypt(encrypted_message)
+
+      decrypted_message.must_equal({ foo: 'bar' })
+    end
+
+    it 'does not preserves symbols when payloads are encoded into JSON' do
+      encryptor = new_encryptor(@secret, purpose: 'testing', serialize_json: true)
+
+      encrypted_message = encryptor.encrypt({ foo: 'bar' })
+      decrypted_message = encryptor.decrypt(encrypted_message)
+
+      decrypted_message.must_equal({ 'foo' => 'bar' })
+    end
   end
 
   describe 'V2' do
@@ -201,10 +232,11 @@ describe Rack::Session::Encryptor do
       Rack::Session::Encryptor::V2
     end
 
-    include EncryptorTests
+    include all_versions_tests(serialize_json: false)
+    include all_versions_tests(serialize_json: true)
 
     it 'encryptor with pad_size has message payload size to multiple of pad_size' do
-      encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: 24)
+      encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: 24)
       message = encryptor.encrypt({ 'foo' => 'bar' * 4 })
 
       decoded_message = Base64.strict_decode64(message)
@@ -216,20 +248,8 @@ describe Rack::Session::Encryptor do
       (encrypted_payload.bytesize % 24).must_equal 0
     end
 
-    it 'encryptor with pad_size increases message size' do
-      no_pad_encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: nil)
-      pad_encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: 64)
-
-      message_without = Base64.strict_decode64(no_pad_encryptor.encrypt(''))
-      message_with = Base64.strict_decode64(pad_encryptor.encrypt(''))
-      message_size_diff = message_with.bytesize - message_without.bytesize
-
-      message_with.bytesize.must_be :>, message_without.bytesize
-      message_size_diff.must_equal 64 - JSON.dump('').bytesize - 2
-    end
-
     it 'raises InvalidMessage on version mismatch' do
-      encryptor = encryptor_class.new(@secret, purpose: 'testing')
+      encryptor = new_encryptor(@secret, purpose: 'testing')
       message = encryptor.encrypt({ 'foo' => 'bar' })
 
       decoded_message = Base64.strict_decode64(message)
@@ -244,7 +264,7 @@ describe Rack::Session::Encryptor do
     # essentially included in plaintext then.
     it 'uses a secret cipher key for encryption and decryption' do
       cipher = OpenSSL::Cipher.new('aes-256-gcm')
-      encryptor = encryptor_class.new(@secret)
+      encryptor = new_encryptor(@secret)
 
       message = encryptor.encrypt({ 'foo' => 'bar' })
       raw_message = Base64.strict_decode64(message)
@@ -264,7 +284,7 @@ describe Rack::Session::Encryptor do
     end
 
     it 'it calls set_cipher_key with the correct key' do
-      encryptor = encryptor_class.new(@secret, purpose: 'testing', pad_size: 24)
+      encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: 24)
       message = encryptor.encrypt({ 'foo' => 'bar' })
 
       message_key = Base64.strict_decode64(message).slice(1, 32)
@@ -281,13 +301,22 @@ describe Rack::Session::Encryptor do
       end
     end
 
-    it 'ignores serialize_json' do
-      encryptor_no_json = encryptor_class.new(@secret, purpose: 'testing', serialize_json: false)
-      encryptor = encryptor_class.new(@secret, purpose: 'testing', serialize_json: true)
+    it 'preserves symbols when payloads are not encoded into JSON' do
+      encryptor = new_encryptor(@secret, purpose: 'testing', serialize_json: false)
 
-      message = encryptor_no_json.encrypt({ 'foo' => 'bar' })
+      encrypted_message = encryptor.encrypt({ foo: 'bar' })
+      decrypted_message = encryptor.decrypt(encrypted_message)
 
-      encryptor.decrypt(message).must_equal({ 'foo' => 'bar' })
+      decrypted_message.must_equal({ foo: 'bar' })
+    end
+
+    it 'does not preserves symbols when payloads are encoded into JSON' do
+      encryptor = new_encryptor(@secret, purpose: 'testing', serialize_json: true)
+
+      encrypted_message = encryptor.encrypt({ foo: 'bar' })
+      decrypted_message = encryptor.decrypt(encrypted_message)
+
+      decrypted_message.must_equal({ 'foo' => 'bar' })
     end
   end
 
