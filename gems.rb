@@ -7,6 +7,8 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem "rake"
+
 group :maintenance, optional: true do
   if RUBY_VERSION > "3.1"
     gem "bake"
@@ -24,6 +26,12 @@ group :doc do
 end
 
 group :test do
+  gem "sus"
+
   gem "bake-test"
   gem "bake-test-external"
+
+  gem "minitest", "~> 5.0"
+  gem "minitest-global_expectations"
+  gem "minitest-sprint"
 end

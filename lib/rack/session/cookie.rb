@@ -156,26 +156,30 @@ module Rack
 
       attr_reader :coder, :encryptors
 
-      def initialize(app, options = {})
-        # support both :secrets and :secret for backwards compatibility
-        secrets = [*(options[:secrets] || options[:secret])]
-
-        encryptor_opts = {
-          purpose: options[:key], serialize_json: options[:serialize_json]
-        }
-
-        # For each secret, create an Encryptor. We have iterate this Array at
-        # decryption time to achieve key rotation.
-        @encryptors = secrets.map do |secret|
-          Rack::Session::Encryptor.new secret, encryptor_opts
+      def initialize(app, coder: Marshal, serialize_json: false, key: nil, purpose: nil, secrets: [], secret: nil, **options)
+        # Support both :secrets and :secret for backwards compatibility:
+        if secret
+          secrets << secret
         end
 
-        # If a legacy HMAC secret is present, initialize those features.
-        # Fallback to :secret for backwards compatibility.
-        if options.has_key?(:legacy_hmac_secret) || options.has_key?(:secret)
+        # `serialize_json` is awefully specific... allow a general `coder` option:
+        if serialize_json
+          coder ||= JSON
+        end
+
+        # Let's consider `key` to be legacy:
+        purpose ||= key
+
+        # For each secret, create an Encryptor, to support key rotation:
+        @encryptors = secrets.map do |secret|
+          Rack::Session::Encryptor.new(secret, delegate: coder, purpose: purpose)
+        end
+
+        # If a legacy HMAC secret is present, initialize those features:
+        if options.has_key?(:legacy_hmac_secret) || secret
           @legacy_hmac = options.fetch(:legacy_hmac, 'SHA1')
 
-          @legacy_hmac_secret = options[:legacy_hmac_secret] || options[:secret]
+          @legacy_hmac_secret = options[:legacy_hmac_secret] || secret
           @legacy_hmac_coder  = options.fetch(:legacy_hmac_coder, Base64::Marshal.new)
         else
           @legacy_hmac = false
@@ -216,7 +220,7 @@ module Rack
             session_data = nil
 
             # Try to decrypt the session data with our encryptors
-            encryptors.each do |encryptor|
+            @encryptors.each do |encryptor|
               begin
                 session_data = encryptor.decrypt(cookie_data)
                 break
@@ -290,10 +294,10 @@ module Rack
       end
 
       def encode_session_data(session)
-        if encryptors.empty?
+        if @encryptors.empty?
           coder.encode(session)
         else
-          encryptors.first.encrypt(session)
+          @encryptors.first.encrypt(session)
         end
       end
 
