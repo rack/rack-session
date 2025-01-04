@@ -212,7 +212,7 @@ describe Rack::Session::Cookie do
     response.body.must_equal ({"counter"=>1}.to_s)
     identity.calls.must_equal [:encode]
 
-    response = response_for(app: [incrementor, { coder: identity }], :cookie=>response["Set-Cookie"].split(';', 2).first)
+    response_for(app: [incrementor, { coder: identity }], cookie: response["Set-Cookie"].split(';', 2).first)
     identity.calls.must_equal [:encode, :decode, :encode]
   end
 
