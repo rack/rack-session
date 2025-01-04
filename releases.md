@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.1.0
 
   - Improved compatibility with Ruby 3.3+ and Rack 3+.
   - Add support for cookie option `partitioned`.
