@@ -211,7 +211,7 @@ describe Rack::Session::Encryptor do
 
       # slice 1 byte for version, 32 bytes for cipher_secret, 12 bytes for IV,
       # 16 bytes for the auth tag from the start of the string
-      encrypted_payload = decoded_message[(1 + 32 + 12 + 16)..]
+      encrypted_payload = decoded_message[(1 + 32 + 12 + 16)..decoded_message.size]
 
       (encrypted_payload.bytesize % 24).must_equal 0
     end
