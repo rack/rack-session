@@ -223,12 +223,13 @@ module Rack
         #
         # Considerations about V2:
         #
-        # 1) It serializes messages in JSON, period.
-        #
-        # 2) It uses non URL-safe Base64 encoding as it's faster than its
+        # 1) It uses non URL-safe Base64 encoding as it's faster than its
         #    URL-safe counterpart - as of Ruby 3.2, Base64.urlsafe_encode64 is
-        #    roughly equivalent to do Base64.strict_encode64(data).tr("-_",
-        #    "+/") - and cookie values don't need to be URL-safe.
+        #    roughly equivalent to
+        #
+        #    Base64.strict_encode64(data).tr("-_", "+/")
+        #
+        #    - and cookie values don't need to be URL-safe.
         def initialize(secret, opts = {})
           raise ArgumentError, 'secret must be a String' unless secret.is_a?(String)
 
@@ -246,9 +247,8 @@ module Rack
           end
 
           @options = {
-            pad_size: 32, purpose: nil
+            serialize_json: false, pad_size: 32, purpose: nil
           }.update(opts)
-          @options[:serialize_json] = true # Enforce JSON serialization
 
           @cipher_secret = secret.dup.force_encoding(Encoding::BINARY).slice!(0, 32)
           @cipher_secret.freeze
