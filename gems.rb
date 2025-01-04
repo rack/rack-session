@@ -8,9 +8,12 @@ source 'https://rubygems.org'
 gemspec
 
 group :maintenance, optional: true do
-  gem "bake"
-  gem "bake-gem"
-  gem "bake-modernize"
+  if RUBY_VERSION > "3.1"
+    gem "bake"
+    gem "bake-gem"
+    gem "bake-modernize"
+    gem "bake-releases"
+  end
 
   gem "rubocop", require: false
   gem "rubocop-packaging", require: false
