@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Prevent `Rack::Session::Pool` from recreating deleted sessions [CVE-2025-46336](https://github.com/rack/rack-session/security/advisories/GHSA-9j94-67jr-4cqj).
+
 ## v2.1.0
 
   - Improved compatibility with Ruby 3.3+ and Rack 3+.
