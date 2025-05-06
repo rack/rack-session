@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.1.1
 
   - Prevent `Rack::Session::Pool` from recreating deleted sessions [CVE-2025-46336](https://github.com/rack/rack-session/security/advisories/GHSA-9j94-67jr-4cqj).
 
