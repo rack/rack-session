@@ -1,3 +1,6 @@
 rack:
   url: https://github.com/rack/rack.git
   command: bundle exec rake test
+rails:
+  url: https://github.com/rails/rails
+  command: bash -c "cd actionpack && bundle exec rake test"
