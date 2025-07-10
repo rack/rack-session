@@ -266,6 +266,10 @@ module Rack
         session = session.merge("session_id" => session_id)
         session_data = encode_session_data(session)
 
+        if @legacy_hmac_secret
+          session_data << "--#{legacy_generate_hmac(session_data)}"
+        end
+
         if session_data.size > (4096 - @key.size)
           req.get_header(RACK_ERRORS).puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
           nil
