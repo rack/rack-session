@@ -227,6 +227,15 @@ describe Rack::Session::Cookie do
     response["Set-Cookie"].must_match /SameSite=None/i
   end
 
+  it "does not create new cookies if cookies does not change" do
+    response = response_for(app: incrementor)
+    cookie   = response["Set-Cookie"]
+    cookie.must_include "rack.session="
+    response = response_for(app: only_session_id, cookie: cookie)
+    cookie   = response["Set-Cookie"]
+    cookie.must_be_nil
+  end
+
   it "allows using a lambda to specify same_site option, because some browsers require different settings" do
     # Details of why this might need to be set dynamically:
     # https://www.chromium.org/updates/same-site/incompatible-clients
@@ -253,14 +262,16 @@ describe Rack::Session::Cookie do
     response = response_for(app: incrementor)
     cookie   = response['Set-Cookie']
     response = response_for(app: only_session_id, cookie: cookie)
-    cookie   = response['Set-Cookie'] if response['Set-Cookie']
+    response['Set-Cookie'].must_be_nil
 
     response.body.wont_equal ""
     old_session_id = response.body
 
     response = response_for(app: renewer, cookie: cookie)
-    cookie   = response['Set-Cookie'] if response['Set-Cookie']
-    response = response_for(app: only_session_id, cookie: cookie)
+    new_cookie = response['Set-Cookie']
+    new_cookie.wont_equal cookie
+
+    response = response_for(app: only_session_id, cookie: new_cookie)
 
     response.body.wont_equal ""
     response.body.wont_equal old_session_id
@@ -276,7 +287,6 @@ describe Rack::Session::Cookie do
     response = response_for(app: destroy_session, cookie: response)
     response = response_for(app: only_session_id, cookie: response)
 
-    response.body.wont_equal ""
     response.body.wont_equal old_session_id
   end
 

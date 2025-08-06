@@ -419,6 +419,7 @@ module Rack
 
         # Sets the cookie back to the client with session id. We skip the cookie
         # setting if the value didn't change (sid is the same) or expires was given.
+        # Allow subclasses to set the cookie value in a different way.
 
         def set_cookie(request, response, cookie)
           if request.cookies[@key] != cookie[:value] || cookie[:expires]
