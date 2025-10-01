@@ -15,9 +15,7 @@ require 'rack/response'
 require_relative '../constants'
 
 module Rack
-
   module Session
-
     class SessionId
       ID_VERSION = 2
 
