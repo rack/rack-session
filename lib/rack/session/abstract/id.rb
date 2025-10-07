@@ -37,6 +37,10 @@ module Rack
       def empty?; false; end
       def inspect; public_id.inspect; end
 
+      def ==(other)
+        other.public_id == public_id
+      end
+
       private
 
       def hash_sid(sid)

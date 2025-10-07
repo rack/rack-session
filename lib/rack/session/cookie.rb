@@ -246,7 +246,7 @@ module Rack
           end
 
           if session_data
-            request.set_header(RACK_SESSION_WAS, session_data.dup)
+            request.set_header(RACK_SESSION_WAS, deep_dup(session_data))
             request.set_header(k, session_data)
           else
             request.set_header(RACK_SESSION_WAS, nil)
@@ -262,9 +262,8 @@ module Rack
       end
 
       def set_cookie(request, response, cookie)
-        return if request.session.to_h == request.get_header(RACK_SESSION_WAS) &&
-                  !request.get_header(RACK_SESSION_OPTIONS).fetch(:renew, false) &&
-                  !cookie[:expires]
+        return if !request.get_header(RACK_SESSION_OPTIONS).fetch(:renew, false) &&
+                  !cookie[:expires] && request.session.to_h == request.get_header(RACK_SESSION_WAS)
 
         response.set_cookie(@key, cookie)
       end
@@ -323,6 +322,10 @@ module Rack
         !@encryptors.empty? ||
           @legacy_hmac ||
           (options[:coder] && options[:let_coder_handle_secure_encoding])
+      end
+
+      def deep_dup(data)
+        ::Marshal.load(::Marshal.dump(data))
       end
     end
   end
