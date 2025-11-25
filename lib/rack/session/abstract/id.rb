@@ -351,8 +351,7 @@ module Rack
           if options[:skip]
             false
           else
-            has_session = loaded_session?(session) || forced_session_update?(session, options)
-            has_session && security_matches?(req, options)
+            loaded_session?(session) || forced_session_update?(session, options)
           end
         end
 
@@ -366,11 +365,6 @@ module Rack
 
         def force_options?(options)
           options.values_at(:max_age, :renew, :drop, :defer, :expire_after).any?
-        end
-
-        def security_matches?(request, options)
-          return true unless options[:secure]
-          request.ssl? || @assume_ssl == true
         end
 
         # Acquires the session from the environment and the session id from

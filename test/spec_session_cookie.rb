@@ -468,14 +468,13 @@ describe Rack::Session::Cookie do
     response.body.must_match(/"counter"\s*=>\s*1/)
   end
 
-  it "does not return a cookie if set to secure but not using ssl" do
+  it "returns a cookie if set to secure but not using ssl" do
     app = [incrementor, { secure: true }]
 
     response = response_for(app: app)
-    response["Set-Cookie"].must_be_nil
+    response["Set-Cookie"].must_match(/secure/)
 
     response = response_for(app: app, request: { "HTTPS" => "on" })
-    response["Set-Cookie"].wont_be :nil?
     response["Set-Cookie"].must_match(/secure/)
   end
 
