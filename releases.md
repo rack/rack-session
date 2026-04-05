@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - [CVE-2026-39324](https://github.com/advisories/GHSA-33qg-7wpp-89cq) Don't fall back to unencrypted coder if encryptors are present.
+
 ## v2.1.1
 
   - Prevent `Rack::Session::Pool` from recreating deleted sessions [CVE-2025-46336](https://github.com/rack/rack-session/security/advisories/GHSA-9j94-67jr-4cqj).

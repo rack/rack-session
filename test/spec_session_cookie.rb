@@ -365,6 +365,31 @@ describe Rack::Session::Cookie do
     response.body.must_equal ({"counter"=>1}.to_s)
   end
 
+  it 'rejects a forged plain Base64::Marshal cookie when secrets: is configured' do
+    # Construct a forged cookie without knowing the secret: plain Base64-encoded
+    # Marshal payload, identical to what an attacker would send.
+    forged_payload = { 'session_id' => 'attacker-fixed', 'counter' => 999 }
+    forged_cookie = "rack.session=#{Base64.strict_encode64(Marshal.dump(forged_payload))}"
+
+    app = [incrementor, { secrets: @secret }]
+
+    # The forged cookie must be rejected; session starts fresh (counter = 1).
+    response = response_for(app: app, cookie: forged_cookie)
+    response.body.must_equal ({"counter" => 1}.to_s)
+  end
+
+  it 'rejects a forged plain Base64::Marshal cookie when secrets: and serialize_json: true are configured' do
+    # serialize_json: true only affects the encryptor serializer; the coder
+    # fallback must also be suppressed when encryptors are configured.
+    forged_payload = { 'session_id' => 'attacker-fixed', 'counter' => 999 }
+    forged_cookie = "rack.session=#{Base64.strict_encode64(Marshal.dump(forged_payload))}"
+
+    app = [incrementor, { secrets: @secret, serialize_json: true }]
+
+    response = response_for(app: app, cookie: forged_cookie)
+    response.body.must_equal ({"counter" => 1}.to_s)
+  end
+
   it 'rejects session cookie with different purpose' do
     app = [incrementor, { secrets: @secrets }]
     other_app = [incrementor, { secrets: @secrets, key: 'other' }]

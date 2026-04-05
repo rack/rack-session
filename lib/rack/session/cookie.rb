@@ -237,8 +237,10 @@ module Rack
               # Decode using legacy HMAC decoder
               session_data = @legacy_hmac_coder.decode(session_data)
 
-            elsif !session_data && coder
-              # Use the coder option, which has the potential to be very unsafe
+            elsif !session_data && encryptors.empty? && coder
+              # Use the coder option, which has the potential to be very unsafe.
+              # This path is only reached when no encryptors (secrets:) are configured;
+              # if encryptors are present but decryption failed, the cookie is rejected.
               session_data = coder.decode(cookie_data)
             end
           end
