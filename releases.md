@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.1.2
 
   - [CVE-2026-39324](https://github.com/advisories/GHSA-33qg-7wpp-89cq) Don't fall back to unencrypted coder if encryptors are present.
 
