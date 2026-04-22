@@ -213,7 +213,7 @@ module Rack
         #
         # Cryptography and Output Format:
         #
-        #   strict_encode64(version + salt + IV + authentication tag + ciphertext)
+        #   urlsafe_encode64(version + salt + IV + authentication tag + ciphertext)
         #
         #  Where:
         #  * version - 1 byte with value 0x02
@@ -223,13 +223,11 @@ module Rack
         #
         # Considerations about V2:
         #
-        # 1) It uses non URL-safe Base64 encoding as it's faster than its
-        #    URL-safe counterpart - as of Ruby 3.2, Base64.urlsafe_encode64 is
-        #    roughly equivalent to
-        #
-        #    Base64.strict_encode64(data).tr("-_", "+/")
-        #
-        #    - and cookie values don't need to be URL-safe.
+        # 1) It uses URL-safe Base64 encoding (RFC 4648) to ensure cookie values
+        #    are not corrupted by Rack's cookie parser, which applies
+        #    URI.decode_www_form_component to cookie values and converts '+' to
+        #    space. Standard Base64 (strict_encode64) can produce '+' characters,
+        #    which would corrupt the cookie value and cause decryption to fail.
         def initialize(secret, opts = {})
           raise ArgumentError, 'secret must be a String' unless secret.is_a?(String)
 
@@ -255,7 +253,7 @@ module Rack
         end
 
         def decrypt(base64_data)
-          data = Base64.strict_decode64(base64_data)
+          data = Base64.urlsafe_decode64(base64_data)
           if data.bytesize <= 61 # version + salt + iv + auth_tag = 61 byte (and we also need some ciphertext :)
             raise InvalidMessage, 'invalid message'
           end
@@ -305,7 +303,7 @@ module Rack
           data << auth_tag_from(cipher)
           data << encrypted_data
 
-          Base64.strict_encode64(data)
+          Base64.urlsafe_encode64(data)
         end
 
         private
