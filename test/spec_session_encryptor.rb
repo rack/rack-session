@@ -379,8 +379,6 @@ describe Rack::Session::Encryptor do
     # (strict_encode64) can produce '+' characters, which would corrupt the
     # cookie before decryption. V2 must use URL-safe Base64 to avoid this.
     it 'decrypts V2 messages that have passed through Rack cookie parsing' do
-      require 'uri'
-
       encryptor = Rack::Session::Encryptor.new(@secret, { mode: :v2 })
       encrypted_message = encryptor.encrypt({ 'foo' => 'bar' })
 
