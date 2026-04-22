@@ -382,20 +382,18 @@ describe Rack::Session::Encryptor do
       require 'uri'
 
       encryptor = Rack::Session::Encryptor.new(@secret, { mode: :v2 })
+      encrypted_message = encryptor.encrypt({ 'foo' => 'bar' })
 
-      # Run enough iterations to be statistically certain we exercise values
-      # that would contain '+' under strict Base64 encoding (~90% of payloads).
-      100.times do
-        encrypted_message = encryptor.encrypt({ 'foo' => 'bar' })
+      # V2 output must only contain URL-safe Base64 characters; '+' and '/'
+      # are the characters that strict_encode64 produces but urlsafe_encode64
+      # does not, and which Rack's cookie parser would corrupt.
+      encrypted_message.must_match(/\A[A-Za-z0-9\-_=]+\z/)
 
-        # Simulate what Rack::Utils.parse_cookies_header does to cookie values
-        cookie_value_after_rack = URI.decode_www_form_component(encrypted_message)
+      # Simulate what Rack::Utils.parse_cookies_header does to cookie values
+      cookie_value_after_rack = URI.decode_www_form_component(encrypted_message)
+      cookie_value_after_rack.must_equal encrypted_message
 
-        cookie_value_after_rack.must_equal encrypted_message,
-          'V2 cookie was corrupted by Rack URI unescaping (+ converted to space)'
-
-        encryptor.decrypt(cookie_value_after_rack).must_equal({ 'foo' => 'bar' })
-      end
+      encryptor.decrypt(cookie_value_after_rack).must_equal({ 'foo' => 'bar' })
     end
   end
 end
