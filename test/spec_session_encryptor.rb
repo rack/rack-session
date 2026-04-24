@@ -239,7 +239,7 @@ describe Rack::Session::Encryptor do
       encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: 24)
       message = encryptor.encrypt({ 'foo' => 'bar' * 4 })
 
-      decoded_message = Base64.strict_decode64(message)
+      decoded_message = Base64.urlsafe_decode64(message)
 
       # slice 1 byte for version, 32 bytes for cipher_secret, 12 bytes for IV,
       # 16 bytes for the auth tag from the start of the string
@@ -252,9 +252,9 @@ describe Rack::Session::Encryptor do
       encryptor = new_encryptor(@secret, purpose: 'testing')
       message = encryptor.encrypt({ 'foo' => 'bar' })
 
-      decoded_message = Base64.strict_decode64(message)
+      decoded_message = Base64.urlsafe_decode64(message)
       decoded_message[0] = "\1"
-      reencoded_message = Base64.strict_encode64(decoded_message)
+      reencoded_message = Base64.urlsafe_encode64(decoded_message)
 
       -> { encryptor.decrypt(reencoded_message) }.must_raise Rack::Session::Encryptor::InvalidMessage
     end
@@ -267,7 +267,7 @@ describe Rack::Session::Encryptor do
       encryptor = new_encryptor(@secret)
 
       message = encryptor.encrypt({ 'foo' => 'bar' })
-      raw_message = Base64.strict_decode64(message)
+      raw_message = Base64.urlsafe_decode64(message)
 
       version = raw_message.slice!(0, 1)
       salt = raw_message.slice!(0, 32)
@@ -287,7 +287,7 @@ describe Rack::Session::Encryptor do
       encryptor = new_encryptor(@secret, purpose: 'testing', pad_size: 24)
       message = encryptor.encrypt({ 'foo' => 'bar' })
 
-      message_key = Base64.strict_decode64(message).slice(1, 32)
+      message_key = Base64.urlsafe_decode64(message).slice(1, 32)
 
       callable = proc do |cipher, key|
         key.wont_equal @secret
@@ -334,7 +334,7 @@ describe Rack::Session::Encryptor do
       encryptor = Rack::Session::Encryptor.new(@secret, { mode: :not_v1 })
 
       encrypted_message = encryptor.encrypt({ 'foo' => 'bar' })
-      version = Base64.strict_decode64(encrypted_message)[0]
+      version = Base64.urlsafe_decode64(encrypted_message)[0]
 
       version.must_equal "\2"
     end
@@ -372,6 +372,26 @@ describe Rack::Session::Encryptor do
 
       decrypted_message_v1.must_equal({ 'foo' => 'bar' })
       decrypted_message_v2.must_equal({ 'foo' => 'bar' })
+    end
+
+    # Rack's parse_cookies_header applies URI.decode_www_form_component to
+    # cookie values, which converts '+' to space. Standard Base64
+    # (strict_encode64) can produce '+' characters, which would corrupt the
+    # cookie before decryption. V2 must use URL-safe Base64 to avoid this.
+    it 'decrypts V2 messages that have passed through Rack cookie parsing' do
+      encryptor = Rack::Session::Encryptor.new(@secret, { mode: :v2 })
+      encrypted_message = encryptor.encrypt({ 'foo' => 'bar' })
+
+      # V2 output must only contain URL-safe Base64 characters; '+' and '/'
+      # are the characters that strict_encode64 produces but urlsafe_encode64
+      # does not, and which Rack's cookie parser would corrupt.
+      encrypted_message.must_match(/\A[A-Za-z0-9\-_=]+\z/)
+
+      # Simulate what Rack::Utils.parse_cookies_header does to cookie values
+      cookie_value_after_rack = URI.decode_www_form_component(encrypted_message)
+      cookie_value_after_rack.must_equal encrypted_message
+
+      encryptor.decrypt(cookie_value_after_rack).must_equal({ 'foo' => 'bar' })
     end
   end
 end
