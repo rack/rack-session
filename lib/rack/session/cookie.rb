@@ -245,7 +245,13 @@ module Rack
             end
           end
 
-          request.set_header(k, session_data || {})
+          if session_data
+            request.set_header(RACK_SESSION_WAS, deep_dup(session_data))
+            request.set_header(k, session_data)
+          else
+            request.set_header(RACK_SESSION_WAS, nil)
+            request.set_header(k, {})
+          end
         end
       end
 
@@ -253,6 +259,13 @@ module Rack
         data ||= {}
         data["session_id"] ||= sid || generate_sid
         data
+      end
+
+      def set_cookie(request, response, cookie)
+        return if !request.get_header(RACK_SESSION_OPTIONS).fetch(:renew, false) &&
+                  !cookie[:expires] && request.session.to_h == request.get_header(RACK_SESSION_WAS)
+
+        response.set_cookie(@key, cookie)
       end
 
       class SessionId < DelegateClass(Session::SessionId)
@@ -309,6 +322,10 @@ module Rack
         !@encryptors.empty? ||
           @legacy_hmac ||
           (options[:coder] && options[:let_coder_handle_secure_encoding])
+      end
+
+      def deep_dup(data)
+        ::Marshal.load(::Marshal.dump(data))
       end
     end
   end
