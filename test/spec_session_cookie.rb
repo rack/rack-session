@@ -391,14 +391,18 @@ describe Rack::Session::Cookie do
   end
 
   it 'rejects session cookie with different purpose' do
-    app = [incrementor, { secrets: @secrets }]
-    other_app = [incrementor, { secrets: @secrets, key: 'other' }]
+    app = [incrementor, { secrets: @secret }] # key defaults to 'rack.session'
+    other_app = [incrementor, { secrets: @secret, key: 'other' }]
+    explicit_default_app = [incrementor, { secrets: @secret, key: 'rack.session' }]
 
     response = response_for(app: app)
     response.body.must_equal ({"counter"=>1}.to_s)
 
     response = response_for(app: app, cookie: response)
     response.body.must_equal ({"counter"=>2}.to_s)
+
+    response = response_for(app: explicit_default_app, cookie: response)
+    response.body.must_equal ({"counter"=>3}.to_s)
 
     response = response_for(app: other_app, cookie: response)
     response.body.must_equal ({"counter"=>1}.to_s)
