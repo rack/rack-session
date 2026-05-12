@@ -161,7 +161,7 @@ module Rack
         secrets = [*(options[:secrets] || options[:secret])]
 
         encryptor_opts = {
-          purpose: options[:key], serialize_json: options[:serialize_json]
+          purpose: options[:key] != RACK_SESSION ? options[:key] : nil, serialize_json: options[:serialize_json]
         }
 
         # For each secret, create an Encryptor. We have iterate this Array at
