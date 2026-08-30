@@ -34,7 +34,7 @@ module Rack
 
           return "#{[0].pack('v')}#{serialized_data.force_encoding(Encoding::BINARY)}" if @options[:pad_size].nil?
 
-          padding_bytes = @options[:pad_size] - (2 + serialized_data.size) % @options[:pad_size]
+          padding_bytes = @options[:pad_size] - (2 + serialized_data.bytesize) % @options[:pad_size]
           padding_data = SecureRandom.random_bytes(padding_bytes)
 
           "#{[padding_bytes].pack('v')}#{padding_data}#{serialized_data.force_encoding(Encoding::BINARY)}"
